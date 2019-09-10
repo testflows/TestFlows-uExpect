@@ -34,6 +34,3 @@ and
 .. code-block:: bash
 
     $ ./install
-
-uses *sudo pip install* command to perform a system-wide installation.
-
