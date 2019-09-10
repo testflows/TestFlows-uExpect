@@ -1,0 +1,39 @@
+TestFlows - uExpect
+===================
+
+**The uexpect module is still work in progress and is currently under development.
+Please use it only for reference.**
+
+Minimal module to provide expect-like capabilities to
+launch and control CLI programs.
+
+Currently supports only Python 3.6 or above.
+
+Installation
+************
+
+.. code-block:: bash
+
+    $ ./build; ./install
+
+where
+
+.. code-block:: bash
+
+    $ ./build
+
+creates a pip installable package in *./dist*, for example
+
+.. code-block:: bash
+
+    $ ls dist/
+    testflows.uexpect-1.2.190905.123636.tar.gz
+
+and
+
+.. code-block:: bash
+
+    $ ./install
+
+uses *sudo pip install* command to perform a system-wide installation.
+
