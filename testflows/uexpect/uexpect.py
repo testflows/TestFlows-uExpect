@@ -158,7 +158,7 @@ class IO(object):
                 timeleft -= (time.time() - start_time)
                 if timeleft <= 0:
                     if self._logger:
-                        self._logger.write((self.buffer[self._logger_buffer_pos:] or '') + '\n')
+                        self._logger.write((self.buffer or '')[self._logger_buffer_pos:] + '\n')
                         self._logger.flush()
                     exception = ExpectTimeoutError(pattern, timeout, self.buffer)
                     self.buffer = None
