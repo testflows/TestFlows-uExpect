@@ -20,7 +20,7 @@ from threading import Thread, Event
 from subprocess import Popen
 from queue import Queue, Empty
 
-__all__ = ["spawn"]
+__all__ = ["spawn", "ExpectTimeoutError"]
 
 class TimeoutError(Exception):
     def __init__(self, timeout):
@@ -155,17 +155,21 @@ class IO(object):
                 data = None
                 data = self.read(timeout=min(timeleft, 0.1), raise_exception=True)
             except TimeoutError:
-                timeleft -= (time.time() - start_time)
+                elapsed = time.time() - start_time
+                timeleft = max(timeleft - elapsed, 0)
                 if timeleft <= 0:
                     if self._logger:
                         self._logger.write((self.buffer or '')[self._logger_buffer_pos:] + '\n')
                         self._logger.flush()
                     exception = ExpectTimeoutError(pattern, timeout, self.buffer)
+                    self.before = self.buffer
+                    self.after = None
                     self.buffer = None
                     self._logger_buffer_pos = 0
                     raise exception
-
-            timeleft -= (time.time() - start_time)
+            else:
+                elapsed = time.time() - start_time
+                timeleft = max(timeleft - elapsed, 0)
             if data:
                 self.buffer = (self.buffer + data) if self.buffer else data
 
@@ -180,7 +184,8 @@ class IO(object):
                 data += self.queue.get(timeout=timeleft)
                 if data:
                     break
-                timeleft -= (time.time() - start_time)
+                elapsed = time.time() - start_time
+                timeleft = max(timeleft - elapsed, 0)
         except Empty:
             if data:
                 return data
