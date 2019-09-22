@@ -124,7 +124,7 @@ class IO(object):
     def write(self, data):
         return os.write(self.master, data.encode("utf-8"))
 
-    def expect(self, pattern, timeout=None, escape=False):
+    def expect(self, pattern, timeout=None, escape=False, expect_timeout=False):
         self.match = None
         self.before = None
         self.after = None
@@ -166,6 +166,8 @@ class IO(object):
                     self.after = None
                     self.buffer = None
                     self._logger_buffer_pos = 0
+                    if expect_timeout:
+                        return
                     raise exception
             else:
                 elapsed = time.time() - start_time
