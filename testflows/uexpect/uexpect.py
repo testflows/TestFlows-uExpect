@@ -206,10 +206,14 @@ def _reader(out, queue, kill_event):
     :param queue: data queue
     :param kill_event: kill event
     """
+    data = bytes()
     while True:
         try:
-            data = os.read(out, 65536)
+            data += os.read(out, 65536)
             queue.put(data.decode("utf-8"))
+            data = bytes()
+        except UnicodeDecodeError:
+            continue
         except:
             if kill_event.is_set():
                 break
