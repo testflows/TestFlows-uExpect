@@ -1,5 +1,4 @@
-TestFlows - uExpect
-===================
+# TestFlows - uExpect
 
 **The uexpect module is still work in progress and is currently under development.
 Please use it only for reference.**
@@ -9,28 +8,27 @@ launch and control CLI programs.
 
 Currently supports only Python 3.6 or above.
 
-Installation
-************
+## Installation
 
-.. code-block:: bash
-
+```bash
     $ ./build; ./install
+```
 
 where
 
-.. code-block:: bash
-
+```bash
     $ ./build
+```
 
-creates a pip installable package in *./dist*, for example
+creates a pip installable package in `./dist`, for example
 
-.. code-block:: bash
-
+```bash
     $ ls dist/
     testflows.uexpect-1.2.190905.123636.tar.gz
+```
 
 and
 
-.. code-block:: bash
-
+```bash
     $ ./install
+```

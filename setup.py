@@ -13,6 +13,9 @@
 # limitations under the License.
 from setuptools import setup
 
+with open("README.md", "r") as fd:
+    long_description = fd.read()
+
 setup(
     name="testflows.uexpect",
     version="__VERSION__",
@@ -20,6 +23,8 @@ setup(
     author="Vitaliy Zakaznikov",
     author_email="vzakaznikov@testflows.com",
     url="https://github.com/testflows/testflows-uexpect",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Programming Language :: Python :: 3",
