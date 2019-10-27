@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+import sys
 import pty
 import time
 import re
@@ -134,6 +135,8 @@ class IO(object):
         if timeout is None:
             timeout = self._timeout
         timeleft = timeout
+        if timeleft is None:
+            timeleft = sys.maxsize
         while True:
             start_time = time.time()
 
