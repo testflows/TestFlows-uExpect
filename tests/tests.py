@@ -11,40 +11,40 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from testflows.core import main, test
-from testflows.core import Test as TestBase
+from testflows.core import *
 
-class Test(TestBase):
-    def run(self):
-        prompt = r'[#\$] '
+@TestModule
+def regression(self):
+    prompt = r'[#\$] '
 
-        with test("import uexpect"):
-            from testflows.uexpect import spawn
+    with Test("import uexpect"):
+        from testflows.uexpect import spawn
 
-        with test("spawn bash terminal") as test:
-            terminal1 = spawn(["/bin/bash", "--noediting"])
-            terminal2 = spawn(["/bin/bash", "--noediting"])
-           
-            terminal1.eol("\r")
-            terminal1.timeout(10)
-            terminal1.logger(test.message_io("terminal1"))
+    with Test("spawn bash terminal") as test:
+        terminal1 = spawn(["/bin/bash", "--noediting"])
+        terminal2 = spawn(["/bin/bash", "--noediting"])
+       
+        terminal1.eol("\r")
+        terminal1.timeout(10)
+        terminal1.logger(test.message_io("terminal1"))
 
-            terminal2.eol("\r")
-            terminal2.timeout(10)
-            terminal2.logger(test.message_io("terminal2"))
+        terminal2.eol("\r")
+        terminal2.timeout(10)
+        terminal2.logger(test.message_io("terminal2"))
 
-            terminal1.expect(prompt)
-            terminal2.expect(prompt)
+        terminal1.expect(prompt)
+        terminal2.expect(prompt)
 
-            terminal2.send("echo foo")
-            terminal2.expect(prompt)
-            terminal1.send("echo $?")
-            terminal1.expect(prompt)
+        terminal2.send("echo foo")
+        terminal2.expect(prompt)
+        terminal2.send("sleep 6")
+        terminal2.expect(prompt)
+        terminal1.send("echo $?")
+        terminal1.expect(prompt)
 
-        with test("print() using test.message_io()"):
-            print("hello there", file=test.message_io("print"))
-            print("another", file=test.message_io("print"))
+    with Test("print() using test.message_io()"):
+        print("hello there", file=test.message_io("print"))
+        print("another", file=test.message_io("print"))
 
 if main():
-    with Test("regression"):
-        pass
+    run(test=regression)
