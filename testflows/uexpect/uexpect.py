@@ -150,7 +150,7 @@ class IO(object):
                     self.buffer = self.buffer[self.match.end():]
                     self._logger_buffer_pos = 0
                     break
-                elif self._logger:
+                elif self._logger and not expect_timeout:
                     self._logger.write(self.buffer[self._logger_buffer_pos:])
                     self._logger_buffer_pos = len(self.buffer)
 
@@ -161,14 +161,15 @@ class IO(object):
                 elapsed = time.time() - start_time
                 timeleft = max(timeleft - elapsed, 0)
                 if timeleft <= 0:
-                    if self._logger:
+                    if self._logger and not expect_timeout:
                         self._logger.write((self.buffer or '')[self._logger_buffer_pos:] + '\n')
                         self._logger.flush()
                     exception = ExpectTimeoutError(pattern, timeout, self.buffer)
                     self.before = self.buffer
                     self.after = None
-                    self.buffer = None
-                    self._logger_buffer_pos = 0
+                    if not expect_timeout:
+                        self.buffer = None
+                        self._logger_buffer_pos = 0
                     if expect_timeout:
                         return
                     raise exception

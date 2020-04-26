@@ -42,6 +42,10 @@ def regression(self):
         terminal1.send("echo $?")
         terminal1.expect(prompt)
 
+        terminal1.send("echo Hello World")
+        terminal1.expect("foo2", timeout=0.001, expect_timeout=True)
+        terminal1.expect(prompt)
+
     with Test("print() using test.message_io()"):
         print("hello there", file=test.message_io("print"))
         print("another", file=test.message_io("print"))
