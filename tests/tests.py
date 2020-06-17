@@ -52,4 +52,4 @@ def regression(self):
         print("another", file=test.message_io("print"))
 
 if main():
-    run(test=regression)
+    Module(run=regression)
