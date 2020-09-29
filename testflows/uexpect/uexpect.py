@@ -118,9 +118,11 @@ class IO(object):
             self._logger.write('\n')
             self._logger.flush()
 
-    def send(self, data, eol=None):
+    def send(self, data, eol=None, delay=None):
         if eol is None:
             eol = self._eol
+        if delay is not None:
+            time.sleep(delay)
         return self.write(data + eol)
 
     def write(self, data):
