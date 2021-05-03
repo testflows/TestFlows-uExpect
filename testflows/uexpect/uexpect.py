@@ -17,6 +17,7 @@ import sys
 import pty
 import time
 import re
+import codecs
 
 from threading import Thread, Event
 from subprocess import Popen
@@ -206,24 +207,27 @@ class IO(object):
 
         return data
 
-def _reader(out, queue, kill_event):
+def _reader(out, queue, kill_event, encoding="utf-8", errors="backslashreplace"):
     """Reader thread.
 
     :param out: pty master to read from
     :param queue: data queue
     :param kill_event: kill event
     """
+    decoder = codecs.getincrementaldecoder(encoding)(errors=errors)
     data = bytes()
     while True:
         try:
             data += os.read(out, 65536)
-            queue.put(data.decode("utf-8"))
+            queue.put(decoder.decode(data))
             data = bytes()
-        except UnicodeDecodeError:
-            continue
+        except OSError as e:
+            if e.errno in (5, 9):
+                return
+            raise
         except:
             if kill_event.is_set():
-                break
+                return
             raise
 
 def spawn(command):
