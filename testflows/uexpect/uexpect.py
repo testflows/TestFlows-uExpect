@@ -16,10 +16,11 @@ import os
 import sys
 import pty
 import time
+import termios
 import re
 import codecs
 
-from threading import Thread, Event
+from threading import Thread, Event, Lock
 from subprocess import Popen
 from queue import Queue, Empty
 
@@ -85,6 +86,8 @@ class IO(object):
         self._logger = None
         self._logger_buffer_pos = 0
         self._eol = ''
+        self._closed = False
+        self._lock = Lock()
 
     def __enter__(self):
         return self
@@ -108,26 +111,36 @@ class IO(object):
         return self._eol
 
     def close(self, force=True):
-        self.reader['kill_event'].set()
-        os.system('pkill -TERM -P %d' % self.process.pid)
-        if force:
-            self.process.kill()
-        else:
-            self.process.terminate()
-        os.close(self.master)
-        if self._logger:
-            self._logger.write('\n')
-            self._logger.flush()
-
+        with self._lock:
+            if not self._closed:
+                try:
+                    self.reader['kill_event'].set()
+                    os.system('pkill -TERM -P %d' % self.process.pid)
+                    if force:
+                        self.process.kill()
+                    else:
+                        self.process.terminate()
+                    os.close(self.master)
+                    if self._logger:
+                        self._logger.write('\n')
+                        self._logger.flush()
+                finally:
+                    self._closed = True
+        
     def send(self, data, eol=None, delay=None):
-        if eol is None:
-            eol = self._eol
-        if delay is not None:
-            time.sleep(delay)
-        return self.write(data + eol)
+       if eol is None:
+           eol = self._eol
+       if delay is not None:
+           time.sleep(delay)
+       return self.write(data + eol)
 
     def write(self, data):
-        return os.write(self.master, data.encode("utf-8"))
+        with self._lock:
+            if self._closed:
+                raise IOError("closed")
+            n = os.write(self.master, data.encode("utf-8"))
+            termios.tcdrain(self.master)
+            return n
 
     def expect(self, pattern, timeout=None, escape=False, expect_timeout=False):
         self.match = None
@@ -186,26 +199,29 @@ class IO(object):
         return self.match
 
     def read(self, timeout=0, raise_exception=False):
-        data = ''
-        timeleft = timeout
-        try:
-            while timeleft >= 0 :
-                start_time = time.time()
-                data += self.queue.get(timeout=timeleft)
+        with self._lock:
+            if self._closed:
+                raise IOError("closed")
+            data = ''
+            timeleft = timeout
+            try:
+                while timeleft >= 0 :
+                    start_time = time.time()
+                    data += self.queue.get(timeout=timeleft)
+                    if data:
+                        break
+                    elapsed = time.time() - start_time
+                    timeleft = max(timeleft - elapsed, 0)
+            except Empty:
                 if data:
-                    break
-                elapsed = time.time() - start_time
-                timeleft = max(timeleft - elapsed, 0)
-        except Empty:
-            if data:
-                return data
-            if raise_exception:
+                    return data
+                if raise_exception:
+                    raise TimeoutError(timeout)
+                pass
+            if not data and raise_exception:
                 raise TimeoutError(timeout)
-            pass
-        if not data and raise_exception:
-            raise TimeoutError(timeout)
 
-        return data
+            return data
 
 def _reader(out, queue, kill_event, encoding="utf-8", errors="backslashreplace"):
     """Reader thread.
@@ -232,7 +248,7 @@ def _reader(out, queue, kill_event, encoding="utf-8", errors="backslashreplace")
 
 def spawn(command):
     master, slave = pty.openpty()
-    process = Popen(command, preexec_fn=os.setsid, stdout=slave, stdin=slave, stderr=slave, bufsize=1)
+    process = Popen(command, preexec_fn=os.setsid, stdout=slave, close_fds=False, stdin=slave, stderr=slave, bufsize=1)
     os.close(slave)
 
     queue = Queue()
