@@ -207,7 +207,10 @@ class IO(object):
             try:
                 while timeleft >= 0 :
                     start_time = time.time()
-                    data += self.queue.get(timeout=timeleft)
+                    d = self.queue.get(timeout=timeleft)
+                    if isinstance(d, BaseException):
+                        raise d
+                    data += d
                     if data:
                         break
                     elapsed = time.time() - start_time
@@ -238,10 +241,12 @@ def _reader(out, queue, kill_event, encoding="utf-8", errors="backslashreplace")
             queue.put(decoder.decode(data))
             data = bytes()
         except OSError as e:
+            queue.put(e)
             if e.errno in (5, 9):
                 return
             raise
-        except:
+        except BaseException as e:
+            queue.put(e)
             if kill_event.is_set():
                 return
             raise
