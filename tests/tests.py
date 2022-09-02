@@ -14,9 +14,10 @@
 # limitations under the License.
 from testflows.core import *
 
+
 @TestModule
 def regression(self):
-    prompt = r'[#\$] '
+    prompt = r"[#\$] "
 
     with Test("import uexpect"):
         from testflows.uexpect import spawn
@@ -24,7 +25,7 @@ def regression(self):
     with Test("spawn bash terminal") as test:
         terminal1 = spawn(["/bin/bash", "--noediting"])
         terminal2 = spawn(["/bin/bash", "--noediting"])
-       
+
         terminal1.eol("\r")
         terminal1.timeout(10)
         terminal1.logger(test.message_io("terminal1"))
@@ -53,6 +54,7 @@ def regression(self):
     with Test("print() using test.message_io()"):
         print("hello there", file=test.message_io("print"))
         print("another", file=test.message_io("print"))
+
 
 if main():
     Module(run=regression)
