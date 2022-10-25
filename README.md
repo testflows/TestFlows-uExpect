@@ -1,8 +1,5 @@
 # [TestFlows.com Open-Source Software Testing Framework] uExpect
 
-**The uexpect module is still work in progress and is currently under development.
-Please use it only for reference.**
-
 Minimal module to provide expect-like capabilities to
 launch and control CLI programs.
 
