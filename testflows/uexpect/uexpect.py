@@ -266,10 +266,10 @@ def _reader(out, queue, kill_event, encoding="utf-8", errors="backslashreplace")
 
 def spawn(command):
     new_env = os.environ.copy()
-    if 'PS1' in new_env:
-        del new_env['PS1']
-    if 'PS2' in new_env:
-        del new_env['PS2']
+    if "PS1" in new_env:
+        del new_env["PS1"]
+    if "PS2" in new_env:
+        del new_env["PS2"]
     master, slave = pty.openpty()
     process = Popen(
         command,
