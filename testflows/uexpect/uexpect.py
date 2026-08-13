@@ -163,6 +163,7 @@ class IO(object):
         timeleft = timeout
         if timeleft is None:
             timeleft = sys.maxsize
+        read_attempted = False
         while True:
             start_time = time.time()
 
@@ -182,7 +183,7 @@ class IO(object):
                     self._logger.write(self.buffer[self._logger_buffer_pos :])
                     self._logger_buffer_pos = len(self.buffer)
 
-            if timeleft <= 0:
+            if read_attempted and timeleft <= 0:
                 if self._logger and not expect_timeout:
                     self._logger.write(
                         (self.buffer or "")[self._logger_buffer_pos :] + "\n"
@@ -202,6 +203,7 @@ class IO(object):
                 data = self.read(timeout=min(timeleft, 0.1), raise_exception=True)
             except TimeoutError:
                 data = None
+            read_attempted = True
 
             elapsed = time.time() - start_time
             timeleft = max(timeleft - elapsed, 0)
