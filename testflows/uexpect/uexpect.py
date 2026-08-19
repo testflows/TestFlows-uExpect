@@ -163,6 +163,7 @@ class IO(object):
         timeleft = timeout
         if timeleft is None:
             timeleft = sys.maxsize
+        read_attempted = False
         while True:
             start_time = time.time()
 
@@ -182,30 +183,31 @@ class IO(object):
                     self._logger.write(self.buffer[self._logger_buffer_pos :])
                     self._logger_buffer_pos = len(self.buffer)
 
+            if read_attempted and timeleft <= 0:
+                if self._logger and not expect_timeout:
+                    self._logger.write(
+                        (self.buffer or "")[self._logger_buffer_pos :] + "\n"
+                    )
+                    self._logger.flush()
+                exception = ExpectTimeoutError(pattern, timeout, self.buffer)
+                self.before = self.buffer
+                self.after = None
+                if not expect_timeout:
+                    self.buffer = None
+                    self._logger_buffer_pos = 0
+                if expect_timeout:
+                    return
+                raise exception
+
             try:
-                data = None
                 data = self.read(timeout=min(timeleft, 0.1), raise_exception=True)
             except TimeoutError:
-                elapsed = time.time() - start_time
-                timeleft = max(timeleft - elapsed, 0)
-                if timeleft <= 0:
-                    if self._logger and not expect_timeout:
-                        self._logger.write(
-                            (self.buffer or "")[self._logger_buffer_pos :] + "\n"
-                        )
-                        self._logger.flush()
-                    exception = ExpectTimeoutError(pattern, timeout, self.buffer)
-                    self.before = self.buffer
-                    self.after = None
-                    if not expect_timeout:
-                        self.buffer = None
-                        self._logger_buffer_pos = 0
-                    if expect_timeout:
-                        return
-                    raise exception
-            else:
-                elapsed = time.time() - start_time
-                timeleft = max(timeleft - elapsed, 0)
+                data = None
+            read_attempted = True
+
+            elapsed = time.time() - start_time
+            timeleft = max(timeleft - elapsed, 0)
+
             if data:
                 self.buffer = (self.buffer + data) if self.buffer else data
 
